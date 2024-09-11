@@ -5,9 +5,9 @@ _pycache_/
  
  
 # Virtual environment
-venv/
+to_do/
 env/
-.env
+*.env
  
 # Flask
 instance/
@@ -16,9 +16,6 @@ instance/
 # SQLite database
 *.db
 
-# Uploads
-static/Uploads
- 
 # IDE specific files
 .vscode/
 .idea/
