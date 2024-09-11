@@ -1,138 +1,138 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import secure_filename
-import os
+import sqlite3
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
-app.config['SECRET_KEY'] = 'mysecret'
-db = SQLAlchemy(app)
+app.secret_key = 'clave_secreta'
 
-# Flask-Login configuration
-login_manager = LoginManager(app)
-login_manager.login_view = 'login'
+def init_db():
+    conn = get_db_connection()
+    
+    conn.executescript('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            password TEXT NOT NULL
+        );
 
-# Allowed image extensions
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+        CREATE TABLE IF NOT EXISTS tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            content TEXT NOT NULL,
+            priority TEXT NOT NULL DEFAULT 'Medium',
+            image TEXT,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        );
+    ''')
 
-# User model for login
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100), unique=True, nullable=False)
-    password = db.Column(db.String(100), nullable=False)
+    cursor = conn.execute("PRAGMA table_info(tasks)")
+    columns = [column[1] for column in cursor.fetchall()]
 
-# Todo model for tasks
-class Todo(db.Model):
-    task_id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Foreign key to link to user
-    name = db.Column(db.String(100), nullable=False)
-    image = db.Column(db.String(100))  # Path to the uploaded image
-    done = db.Column(db.Boolean, default=False)
+    if 'image' not in columns:
+        conn.execute("ALTER TABLE tasks ADD COLUMN image TEXT")
+        conn.commit()
 
-# Check allowed file types
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    conn.close()
 
-# Flask-Login user loader
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
 
-# Register route
+def get_db_connection():
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        hashed_password = generate_password_hash(password, method='sha256')
+        hashed_password = generate_password_hash(password)
 
-        user = User.query.filter_by(username=username).first()
-        if user:
-            flash('El usuario ya existe.')
-            return redirect(url_for('register'))
+        conn = get_db_connection()
+        conn.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_password))
+        conn.commit()
+        conn.close()
 
-        new_user = User(username=username, password=hashed_password)
-        db.session.add(new_user)
-        db.session.commit()
-        flash('Usuario registrado con éxito. Ahora puedes iniciar sesión.')
+        flash('Registro exitoso. Ahora puedes iniciar sesión.')
         return redirect(url_for('login'))
 
     return render_template('register.html')
 
-# Login route
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        user = User.query.filter_by(username=username).first()
-        if user and check_password_hash(user.password, password):
-            login_user(user)
-            return redirect(url_for('home'))
-        flash('Login incorrecto, por favor inténtalo de nuevo.')
+
+        conn = get_db_connection()
+        user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+        conn.close()
+
+        if user and check_password_hash(user['password'], password):
+            session['user_id'] = user['id']
+            session['username'] = user['username']
+            return redirect(url_for('todo_list'))
+        else:
+            flash('Usuario o contraseña incorrectos')
+
     return render_template('login.html')
 
-# Home route (To-Do List)
-@app.route('/')
-@login_required
-def home():
-    todo_list = Todo.query.filter_by(user_id=current_user.id).all()
-    return render_template('base.html', todo_list=todo_list)
 
-# Add task route with image upload
-@app.route('/add', methods=['POST'])
-@login_required
-def add():
-    name = request.form.get("name")
-    file = request.files.get('file')
-    filename = None
+@app.route('/todo', methods=['GET', 'POST'])
+def todo_list():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
 
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+    conn = get_db_connection()
+    user_id = session['user_id']
 
-    new_task = Todo(name=name, image=filename, user_id=current_user.id, done=False)
-    db.session.add(new_task)
-    db.session.commit()
-    return redirect(url_for("home"))
+    if request.method == 'POST':
+        task_content = request.form['task_content']
+        task_priority = request.form['task_priority']
+        if task_content:
+            conn.execute('INSERT INTO tasks (user_id, content, priority) VALUES (?, ?, ?)', (user_id, task_content, task_priority))
+            conn.commit()
 
-# Update task route (mark as done/not done)
-@app.route('/update/<int:todo_id>')
-@login_required
-def update(todo_id):
-    todo = Todo.query.get(todo_id)
-    if todo.user_id == current_user.id:
-        todo.done = not todo.done
-        db.session.commit()
-    return redirect(url_for("home"))
+    tasks = conn.execute('SELECT * FROM tasks WHERE user_id = ?', (user_id,)).fetchall()
+    conn.close()
 
-# Delete task route
-@app.route('/delete/<int:todo_id>')
-@login_required
-def delete(todo_id):
-    todo = Todo.query.get(todo_id)
-    if todo.user_id == current_user.id:
-        if todo.image:
-            image_path = os.path.join(app.config['UPLOAD_FOLDER'], todo.image)
-            if os.path.exists(image_path):
-                os.remove(image_path)
-        db.session.delete(todo)
-        db.session.commit()
-    return redirect(url_for("home"))
+    return render_template('todo.html', tasks=tasks)
 
-# Logout route
+@app.route('/edit_task/<int:task_id>', methods=['POST'])
+def edit_task(task_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    new_content = request.form['new_content']
+    new_priority = request.form['new_priority']
+    conn = get_db_connection()
+    conn.execute('UPDATE tasks SET content = ?, priority = ? WHERE id = ?', (new_content, new_priority, task_id))
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('todo_list'))
+
+@app.route('/delete_task/<int:task_id>', methods=['POST'])
+def delete_task(task_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    conn.execute('DELETE FROM tasks WHERE id = ?', (task_id,))
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('todo_list'))
+
+
 @app.route('/logout')
-@login_required
 def logout():
-    logout_user()
+    session.pop('user_id', None)
+    session.pop('username', None)
+    flash('Has cerrado sesión.')
     return redirect(url_for('login'))
 
-# Create the database tables
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
+    init_db()
     app.run(debug=True)

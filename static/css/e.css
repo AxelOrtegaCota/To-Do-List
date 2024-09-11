@@ -1,0 +1,104 @@
+body {
+    background-color: black;
+    margin: 0;
+    color: black;
+    font-family: Arial, Helvetica, sans-serif;
+}
+#login-section, #register-section, #todo-section {
+    display: none;
+}
+#login-section.active, #register-section.active, #todo-section.active {
+    display: block;
+}
+.task {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.task img {
+    width: 50px;
+    margin-left: 10px;
+}
+.task input[type="text"] {
+    margin-right: 10px;
+}
+.task button {
+    margin-left: 10px;
+}
+header {
+    background-color: gold;
+    font-weight: bold;
+    height: 20px;
+    padding-top: 1px;
+    padding-bottom: 40px;
+}
+h3 {
+    text-align: center;
+}
+section {
+    height: 550px;
+}
+footer {
+    background-color: darkslategrey;
+    padding-top: 1px;
+    padding-bottom: 12px;
+    height: 38px;
+    color: white;
+    text-align: center;
+}
+fieldset {
+    padding-top: 20px;
+    margin-top: 70px;
+    margin-left: 540px;
+    width: 425px;
+    color: darkorange;
+}
+fieldset input {
+    width: 390px;
+}
+#inicio {
+    font-weight: bold;
+}
+fieldset button {
+    color: cornflowerblue;
+    font-weight: bold;
+    padding: 10px;
+    width: 375px;
+    background-color: rgb(221, 216, 216);
+}
+
+li{
+    color: white;
+}
+
+h3{
+    color: white;
+}
+
+button {
+    margin: 5px;
+}
+
+button[type="submit"] {
+    background-color: cornflowerblue;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+button[type="submit"]:hover {
+    background-color: dodgerblue;
+}
+
+button[style="color: red;"] {
+    background-color: rgb(127, 0, 0);
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+button[style="color: red;"]:hover {
+    background-color: darkred;
+}

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+    <link rel="stylesheet" href="/static/css/e.css">
+</head>
+<body>
+    <header>
+        <h3>To-Do List App</h3>
+    </header>
+
+    <section id="todo-section" class="active">
+        <fieldset>
+            <legend id="inicio">To-Do List</legend>
+            <form method="POST" action="{{ url_for('todo_list') }}">
+                <input type="text" name="task_content" id="new-task-content" placeholder="Nueva tarea" required><br><br>
+                
+                <label for="task-priority">Prioridad:</label>
+                <select name="task_priority" id="task-priority">
+                    <option value="Low">Baja</option>
+                    <option value="Medium" selected>Media</option>
+                    <option value="High">Alta</option>
+                </select><br><br>
+                
+                <button type="submit">Añadir tarea</button>
+            </form>
+        </fieldset>
+    </section>
+
+    <div id="task-container">
+        <h3>Tareas Asignadas</h3>
+        <ul id="task-list">
+            {% for task in tasks %}
+                <li>
+                    <form method="POST" action="{{ url_for('edit_task', task_id=task['id']) }}">
+                        <input type="text" name="new_content" value="{{ task['content'] }}">
+                        
+                        <label for="new-priority">Prioridad:</label>
+                        <select name="new_priority">
+                            <option value="Low" {% if task['priority'] == 'Low' %}selected{% endif %}>Baja</option>
+                            <option value="Medium" {% if task['priority'] == 'Medium' %}selected{% endif %}>Media</option>
+                            <option value="High" {% if task['priority'] == 'High' %}selected{% endif %}>Alta</option>
+                        </select>
+
+                        <button type="submit">Guardar</button>
+                    </form>
+
+                    <form method="POST" action="{{ url_for('delete_task', task_id=task['id']) }}">
+                        <button type="submit" style="color: red;">Eliminar</button>
+                    </form>
+                </li>
+            {% else %}
+                <li>No hay tareas asignadas.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <footer>
+        <p>&copy; De Axel Ortega</p>
+    </footer>
+</body>
+</html>
