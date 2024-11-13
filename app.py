@@ -56,7 +56,7 @@ def register():
         flash('Registro exitoso. Ahora puedes iniciar sesión.')
         return redirect(url_for('login'))
 
-    return render_template('register.html')
+    return render_template('auth/register.html')
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -76,10 +76,10 @@ def login():
         else:
             flash('Usuario o contraseña incorrectos')
 
-    return render_template('login.html')
+    return render_template('auth/login.html')
 
 
-@app.route('/todo', methods=['GET', 'POST'])
+@app.route('/base', methods=['GET', 'POST'])
 def todo_list():
     if 'user_id' not in session:
         return redirect(url_for('login'))
@@ -97,7 +97,7 @@ def todo_list():
     tasks = conn.execute('SELECT * FROM tasks WHERE user_id = ?', (user_id,)).fetchall()
     conn.close()
 
-    return render_template('todo.html', tasks=tasks)
+    return render_template('base.html', tasks=tasks)
 
 @app.route('/edit_task/<int:task_id>', methods=['POST'])
 def edit_task(task_id):
