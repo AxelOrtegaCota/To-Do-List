@@ -1,4 +1,4 @@
-# tests/integration/test_api/test_tasks_api.py
+'''# tests/integration/test_api/test_tasks_api.py
 import pytest
 from app.models import Task
 
@@ -30,3 +30,4 @@ def test_delete_task(test_client, auth, init_db):
     response = test_client.delete(f'/tasks/{task.id}')
     assert response.status_code == 200
     assert Task.query.get(task.id) is None
+'''

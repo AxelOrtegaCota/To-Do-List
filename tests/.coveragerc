@@ -1,8 +1,6 @@
-# .coveragerc
 [run]
 branch = True
-source =
-    app
+source = app
 
 [report]
 show_missing = True
