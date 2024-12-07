@@ -1,8 +1,9 @@
 from flask import Flask
 from app.extensions import db
 from app.api.auth import auth_bp
+from app.api.tasks import tasks_bp
 
-def create_app(config_class='config.Config'):
+def create_app(config_class='config.DevelopmentConfig'):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
@@ -11,5 +12,6 @@ def create_app(config_class='config.Config'):
 
     # Registra blueprints
     app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.register_blueprint(tasks_bp, url_prefix='/tasks')
 
     return app

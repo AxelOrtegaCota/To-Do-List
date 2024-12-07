@@ -1,53 +1,49 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for
 from app.models.task import Task
 from app.extensions import db
 
 # Crear el blueprint
-tasks = Blueprint("tasks", __name__)
+tasks_bp = Blueprint("tasks", __name__)
 
-# Ruta para obtener todas las tareas
-@tasks.route("/", methods=["GET"])
-def get_tasks():
-    all_tasks = Task.query.all()
-    tasks_list = [{"id": t.id, "content": t.content, "priority": t.priority} for t in all_tasks]
-    return jsonify(tasks_list), 200
+# Ruta para obtener y mostrar todas las tareas (GET) y crear nuevas (POST)
+@tasks_bp.route("/", methods=["GET", "POST"])
+def todo_list():
+    if request.method == "POST":
+        # Crear una nueva tarea desde el formulario
+        content = request.form.get("task_content")
+        priority = request.form.get("task_priority", "Medium")
 
-# Ruta para crear una nueva tarea
-@tasks.route("/", methods=["POST"])
-def create_task():
-    data = request.get_json()
-    content = data.get("content")
-    priority = data.get("priority", "Medium")
+        if content:
+            new_task = Task(content=content, priority=priority)
+            db.session.add(new_task)
+            db.session.commit()
+        return redirect(url_for("tasks.todo_list"))
 
-    if not content:
-        return jsonify({"error": "Task content is required"}), 400
-
-    new_task = Task(content=content, priority=priority)
-    db.session.add(new_task)
-    db.session.commit()
-    return jsonify({"message": "Task created", "task": {"id": new_task.id, "content": new_task.content, "priority": new_task.priority}}), 201
+    # Obtener todas las tareas
+    tasks = Task.query.all()
+    return render_template("base.html", tasks=tasks)
 
 # Ruta para actualizar una tarea
-@tasks.route("/<int:task_id>", methods=["PUT"])
-def update_task(task_id):
+@tasks_bp.route("/edit/<int:task_id>", methods=["POST"])
+def edit_task(task_id):
     task = Task.query.get(task_id)
     if not task:
-        return jsonify({"error": "Task not found"}), 404
+        return redirect(url_for("tasks.todo_list"))  # Verifica que la tarea existe
 
-    data = request.get_json()
-    task.content = data.get("content", task.content)
-    task.priority = data.get("priority", task.priority)
+    # Actualizar contenido y prioridad
+    task.content = request.form.get("new_content", task.content)
+    task.priority = request.form.get("new_priority", task.priority)
     db.session.commit()
 
-    return jsonify({"message": "Task updated", "task": {"id": task.id, "content": task.content, "priority": task.priority}}), 200
+    return redirect(url_for("tasks.todo_list"))
 
 # Ruta para eliminar una tarea
-@tasks.route("/<int:task_id>", methods=["DELETE"])
+@tasks_bp.route("/delete/<int:task_id>", methods=["POST"])
 def delete_task(task_id):
     task = Task.query.get(task_id)
     if not task:
-        return jsonify({"error": "Task not found"}), 404
+        return redirect(url_for("tasks.todo_list"))  # Verifica que la tarea existe
 
     db.session.delete(task)
     db.session.commit()
-    return jsonify({"message": "Task deleted"}), 200
+    return redirect(url_for("tasks.todo_list"))

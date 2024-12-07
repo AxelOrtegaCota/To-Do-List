@@ -1,53 +1,53 @@
-from flask import Blueprint, request, jsonify, session
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask import Blueprint, request, render_template, redirect, url_for, session
 from app.models.user import User
 from app.extensions import db
 
-# Crear el Blueprint para las rutas de autenticación
 auth_bp = Blueprint('auth', __name__)
 
-@auth_bp.route('/login', methods=['POST'])
+@auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    """Endpoint para iniciar sesión."""
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
+    if request.method == 'GET':
+        # Renderizar el formulario de login
+        return render_template('auth/login.html')
+
+    # Manejo de solicitudes POST
+    username = request.form.get('username')
+    password = request.form.get('password')
 
     if not username or not password:
-        return jsonify({'error': 'Se requiere usuario y contraseña'}), 400
+        return render_template('auth/login.html', error='Se requiere usuario y contraseña')
 
+    # Verificar usuario en la base de datos
     user = User.query.filter_by(username=username).first()
     if user and user.check_password(password):
-        # Crear sesión del usuario
         session['user_id'] = user.id
         session['username'] = user.username
-        return jsonify({'message': f'Bienvenido {user.username}'}), 200
+        return redirect(url_for('tasks.todo_list'))  # Redirigir a las tareas
 
-    return jsonify({'error': 'Usuario o contraseña incorrectos'}), 401
+    return render_template('auth/login.html', error='Usuario o contraseña incorrectos')
 
-@auth_bp.route('/register', methods=['POST'])
+@auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
-    """Endpoint para registrar un nuevo usuario."""
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
+    if request.method == 'GET':
+        # Renderizar el formulario de registro
+        return render_template('auth/register.html')
+
+    # Manejo de solicitudes POST para registro
+    username = request.form.get('username')
+    password = request.form.get('password')
 
     if not username or not password:
-        return jsonify({'error': 'Se requiere usuario y contraseña'}), 400
+        return render_template('auth/register.html', error='Se requiere usuario y contraseña')
 
-    if User.query.filter_by(username=username).first():
-        return jsonify({'error': 'El usuario ya existe'}), 400
+    # Verificar si el usuario ya existe
+    user = User.query.filter_by(username=username).first()
+    if user:
+        return render_template('auth/register.html', error='El usuario ya existe')
 
+    # Crear un nuevo usuario
     new_user = User(username=username)
-    new_user.password = password
-
+    new_user.password = password  # Esto debe manejarse con hashing seguro
     db.session.add(new_user)
     db.session.commit()
 
-    return jsonify({'message': f'Usuario {username} registrado exitosamente'}), 201
-
-@auth_bp.route('/logout', methods=['POST'])
-def logout():
-    """Endpoint para cerrar sesión."""
-    session.clear()
-    return jsonify({'message': 'Sesión cerrada correctamente'}), 200
+    return redirect(url_for('auth.login'))

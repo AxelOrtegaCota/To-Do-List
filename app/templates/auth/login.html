@@ -14,7 +14,7 @@
     <section id="login-section" class="active">
         <fieldset>
             <legend id="inicio">Inicio de Sesión</legend>
-            <form method="POST" action="{{ url_for('auth.login') }}">
+            <form action="/auth/login" method="POST">
                 <label for="username">Usuario:</label>
                 <input type="text" id="username" name="username" required><br><br>
 
