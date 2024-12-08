@@ -8,6 +8,9 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     _password = db.Column("password", db.String(128), nullable=False)  # Campo privado para almacenar la contraseña
 
+    # Relación con las tareas
+    tasks = db.relationship("Task", backref="user", cascade="all, delete-orphan", lazy=True)
+
     @property
     def password(self):
         """Evita que la contraseña sea leída directamente."""
