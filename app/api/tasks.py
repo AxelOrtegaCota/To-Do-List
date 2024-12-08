@@ -4,6 +4,7 @@ from app.models.task import Task
 from app.models.user import User
 from app.extensions import db
 
+
 # Crear los blueprints
 tasks_bp = Blueprint("tasks", __name__)  # Para las rutas normales
 tasks_api_bp = Blueprint("tasks_api", __name__, url_prefix='/api/tasks')  # Para las rutas API
@@ -37,6 +38,7 @@ def todo_list():
     tasks = Task.query.filter_by(user_id=user.id).all()
     return render_template("base.html", tasks=tasks)
 
+
 @tasks_bp.route("/edit/<int:task_id>", methods=["POST"])
 def edit_task(task_id):
     user = get_authenticated_user()
@@ -51,6 +53,7 @@ def edit_task(task_id):
     task.priority = request.form.get("new_priority", task.priority)
     db.session.commit()
     return redirect(url_for("tasks.todo_list"))
+
 
 @tasks_bp.route("/delete/<int:task_id>", methods=["POST"])
 def delete_task(task_id):
@@ -77,6 +80,7 @@ def get_tasks():
     tasks_list = [{"id": t.id, "content": t.content, "priority": t.priority, "completed": t.completed} for t in tasks]
     return jsonify(tasks_list), 200
 
+
 @tasks_api_bp.route("/", methods=["POST"])
 def create_task():
     user = get_authenticated_user()
@@ -95,6 +99,7 @@ def create_task():
     db.session.commit()
     return jsonify({"message": "Task created", "task": {"id": new_task.id, "content": new_task.content, "priority": new_task.priority}}), 201
 
+
 @tasks_api_bp.route("/<int:task_id>", methods=["PUT"])
 def update_task(task_id):
     user = get_authenticated_user()
@@ -111,6 +116,7 @@ def update_task(task_id):
     db.session.commit()
 
     return jsonify({"message": "Task updated", "task": {"id": task.id, "content": task.content, "priority": task.priority}}), 200
+
 
 @tasks_api_bp.route("/<int:task_id>", methods=["DELETE"])
 def delete_task(task_id):

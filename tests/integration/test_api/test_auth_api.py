@@ -16,6 +16,7 @@ def test_register_user(test_client, init_database):
     assert response.status_code == 201
     assert response.get_json()['message'] == 'Usuario testuser registrado exitosamente'
 
+
 def test_login_invalid_credentials(test_client):
     """Prueba que la API devuelva 401 para credenciales inválidas."""
     response = test_client.post(
@@ -24,6 +25,7 @@ def test_login_invalid_credentials(test_client):
     )
     assert response.status_code == 401  # Código de estado esperado
     assert response.get_json() == {'error': 'Credenciales inválidas'}  # Valida el mensaje
+
 
 def test_login_missing_credentials(test_client):
     """Prueba que la API devuelva 400 cuando faltan credenciales."""

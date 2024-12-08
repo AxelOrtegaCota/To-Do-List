@@ -1,4 +1,3 @@
-import pytest
 from app.forms.forms import LoginForm, RegisterForm
 
 

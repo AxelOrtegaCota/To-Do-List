@@ -1,6 +1,7 @@
 from app.extensions import db
 from werkzeug.security import generate_password_hash, check_password_hash
 
+
 class User(db.Model):
     __tablename__ = 'users'
 
@@ -22,6 +23,7 @@ class User(db.Model):
         if not plaintext_password:
             raise ValueError("La contraseña no puede estar vacía.")
         self._password = generate_password_hash(plaintext_password)
+
 
     def check_password(self, plaintext_password):
         """Verifica si una contraseña sin hashear coincide con la hasheada."""

@@ -4,6 +4,7 @@ from app.models.user import User
 from app.extensions import db
 import uuid
 
+
 @pytest.fixture
 def create_user(init_database):
     """Crea un usuario único para asociar tareas."""

@@ -2,7 +2,9 @@ from flask import Blueprint, request, jsonify, session, redirect, url_for, rende
 from app.models.user import User
 from app.extensions import db
 
+
 auth_bp = Blueprint('auth', __name__)
+
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
@@ -34,6 +36,7 @@ def register():
     if request.content_type == 'application/json':
         return jsonify({'message': f'Usuario {username} registrado exitosamente'}), 201
     return redirect(url_for('auth.login'))
+
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():

@@ -3,6 +3,7 @@ from app.extensions import db
 from app.api.auth import auth_bp
 from app.api.tasks import tasks_bp, tasks_api_bp
 
+
 def create_app(config_class='config.DevelopmentConfig'):
     app = Flask(__name__)
     app.config.from_object(config_class)

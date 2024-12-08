@@ -1,5 +1,6 @@
 from app.models.user import User
 
+
 def test_user_creation(init_database):
     """Prueba para la creación de usuarios."""
     user = User(username="testuser")
