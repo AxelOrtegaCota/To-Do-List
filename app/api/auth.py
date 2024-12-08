@@ -47,21 +47,24 @@ def login():
     password = request.form.get('password') or request.json.get('password')
 
     if not username or not password:
-        if request.content_type == 'application/json':
-            return jsonify({'error': 'Se requiere usuario y contraseña'}), 400
-        return render_template('auth/login.html', error='Se requiere usuario y contraseña')
+        return render_template(
+            'auth/login.html',
+            error='Se requiere usuario y contraseña'
+        )
 
     user = User.query.filter_by(username=username).first()
     if user and user.check_password(password):  # Validar contraseña
         session['user_id'] = user.id
         session['username'] = user.username
-        if request.content_type == 'application/json':
-            return jsonify({'message': f'Bienvenido {user.username}'}), 200
         return redirect(url_for('tasks.todo_list'))
 
-    if request.content_type == 'application/json':
-        return jsonify({'error': 'Usuario o contraseña incorrectos'}), 401
-    return render_template('auth/login.html', error='Usuario o contraseña incorrectos')
+    # Mensaje de error para credenciales inválidas
+    return render_template(
+        'auth/login.html',
+        error='Credenciales inválidas'
+    )
+
+
 
 @auth_bp.route('/logout', methods=['GET', 'POST'])
 def logout():
