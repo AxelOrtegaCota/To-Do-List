@@ -39,31 +39,35 @@ def register():
 def login():
     """Inicio de sesión"""
     if request.method == 'GET':
-        # Renderiza el formulario HTML de login
         return render_template('auth/login.html')
 
-    # Manejo de solicitudes POST (formulario o API)
-    username = request.form.get('username') or request.json.get('username')
-    password = request.form.get('password') or request.json.get('password')
+    # Manejo de datos JSON o formulario
+    if request.is_json:
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+    else:
+        username = request.form.get('username')
+        password = request.form.get('password')
 
+    # Validar credenciales
     if not username or not password:
-        return render_template(
-            'auth/login.html',
-            error='Se requiere usuario y contraseña'
-        )
+        if request.is_json:
+            return jsonify({'error': 'Se requiere usuario y contraseña'}), 400
+        return render_template('auth/login.html', error='Se requiere usuario y contraseña')
 
     user = User.query.filter_by(username=username).first()
-    if user and user.check_password(password):  # Validar contraseña
+    if user and user.check_password(password):
         session['user_id'] = user.id
         session['username'] = user.username
+        if request.is_json:
+            return jsonify({'message': f'Bienvenido {user.username}'}), 200
         return redirect(url_for('tasks.todo_list'))
 
-    # Mensaje de error para credenciales inválidas
-    return render_template(
-        'auth/login.html',
-        error='Credenciales inválidas'
-    )
-
+    # Respuesta para credenciales inválidas
+    if request.is_json:
+        return jsonify({'error': 'Credenciales inválidas'}), 401  # Devuelve 401 para API JSON
+    return render_template('auth/login.html', error='Credenciales inválidas')
 
 
 @auth_bp.route('/logout', methods=['GET', 'POST'])

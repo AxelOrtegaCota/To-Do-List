@@ -17,16 +17,22 @@ def test_register_user(test_client, init_database):
     assert response.get_json()['message'] == 'Usuario testuser registrado exitosamente'
 
 def test_login_invalid_credentials(test_client):
-    """Prueba para iniciar sesión con credenciales inválidas."""
+    """Prueba que la API devuelva 401 para credenciales inválidas."""
     response = test_client.post(
-        url_for('auth.login'),
-        json={
-            'username': 'nonexistentuser',
-            'password': 'wrongpassword'
-        }
+        '/auth/login',
+        json={'username': 'invaliduser', 'password': 'wrongpassword'}
     )
-    assert response.status_code == 401
-    assert response.get_json()['error'] == 'Usuario o contraseña incorrectos'
+    assert response.status_code == 401  # Código de estado esperado
+    assert response.get_json() == {'error': 'Credenciales inválidas'}  # Valida el mensaje
+
+def test_login_missing_credentials(test_client):
+    """Prueba que la API devuelva 400 cuando faltan credenciales."""
+    response = test_client.post(
+        '/auth/login',
+        json={'username': ''}
+    )
+    assert response.status_code == 400
+    assert response.get_json() == {'error': 'Se requiere usuario y contraseña'}
 
 
 def test_logout_user(test_client):
