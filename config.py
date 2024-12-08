@@ -11,9 +11,13 @@ class DevelopmentConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///development.db'  # Usar SQLite para desarrollo
 
 class TestingConfig(Config):
-    """Configuración para pruebas."""
+    """Configuración específica para pruebas."""
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///testing.db'
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'  # Usa una base de datos en memoria para pruebas
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SECRET_KEY = 'testing-secret'
+    SERVER_NAME = 'localhost'  # Necesario para usar `url_for` en las pruebas
+    WTF_CSRF_ENABLED = False
 
 class ProductionConfig(Config):
     """Configuración para producción."""

@@ -1,53 +1,70 @@
-from flask import Blueprint, request, render_template, redirect, url_for, session
+from flask import Blueprint, request, jsonify, session, redirect, url_for, render_template
 from app.models.user import User
 from app.extensions import db
 
 auth_bp = Blueprint('auth', __name__)
 
-@auth_bp.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'GET':
-        # Renderizar el formulario de login
-        return render_template('auth/login.html')
-
-    # Manejo de solicitudes POST
-    username = request.form.get('username')
-    password = request.form.get('password')
-
-    if not username or not password:
-        return render_template('auth/login.html', error='Se requiere usuario y contraseña')
-
-    # Verificar usuario en la base de datos
-    user = User.query.filter_by(username=username).first()
-    if user and user.check_password(password):
-        session['user_id'] = user.id
-        session['username'] = user.username
-        return redirect(url_for('tasks.todo_list'))  # Redirigir a las tareas
-
-    return render_template('auth/login.html', error='Usuario o contraseña incorrectos')
-
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
+    """Registro de usuario"""
     if request.method == 'GET':
-        # Renderizar el formulario de registro
+        # Renderiza el formulario HTML de registro
         return render_template('auth/register.html')
 
-    # Manejo de solicitudes POST para registro
-    username = request.form.get('username')
-    password = request.form.get('password')
+    # Manejo de solicitudes POST (formulario o API)
+    username = request.form.get('username') or request.json.get('username')
+    password = request.form.get('password') or request.json.get('password')
 
     if not username or not password:
+        if request.content_type == 'application/json':
+            return jsonify({'error': 'Se requiere usuario y contraseña'}), 400
         return render_template('auth/register.html', error='Se requiere usuario y contraseña')
 
-    # Verificar si el usuario ya existe
-    user = User.query.filter_by(username=username).first()
-    if user:
+    if User.query.filter_by(username=username).first():
+        if request.content_type == 'application/json':
+            return jsonify({'error': 'El usuario ya existe'}), 400
         return render_template('auth/register.html', error='El usuario ya existe')
 
-    # Crear un nuevo usuario
+    # Crear y guardar un nuevo usuario
     new_user = User(username=username)
-    new_user.password = password  # Esto debe manejarse con hashing seguro
+    new_user.password = password  # Usar el setter
     db.session.add(new_user)
     db.session.commit()
 
+    if request.content_type == 'application/json':
+        return jsonify({'message': f'Usuario {username} registrado exitosamente'}), 201
     return redirect(url_for('auth.login'))
+
+@auth_bp.route('/login', methods=['GET', 'POST'])
+def login():
+    """Inicio de sesión"""
+    if request.method == 'GET':
+        # Renderiza el formulario HTML de login
+        return render_template('auth/login.html')
+
+    # Manejo de solicitudes POST (formulario o API)
+    username = request.form.get('username') or request.json.get('username')
+    password = request.form.get('password') or request.json.get('password')
+
+    if not username or not password:
+        if request.content_type == 'application/json':
+            return jsonify({'error': 'Se requiere usuario y contraseña'}), 400
+        return render_template('auth/login.html', error='Se requiere usuario y contraseña')
+
+    user = User.query.filter_by(username=username).first()
+    if user and user.check_password(password):  # Validar contraseña
+        session['user_id'] = user.id
+        session['username'] = user.username
+        if request.content_type == 'application/json':
+            return jsonify({'message': f'Bienvenido {user.username}'}), 200
+        return redirect(url_for('tasks.todo_list'))
+
+    if request.content_type == 'application/json':
+        return jsonify({'error': 'Usuario o contraseña incorrectos'}), 401
+    return render_template('auth/login.html', error='Usuario o contraseña incorrectos')
+
+@auth_bp.route('/logout', methods=['POST'])
+def logout():
+    """Cierre de sesión"""
+    session.clear()
+    return jsonify({'message': 'Sesión cerrada correctamente'}), 200
