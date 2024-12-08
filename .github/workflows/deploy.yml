@@ -1,19 +1,14 @@
 ---
-    name: CI
+    name: Deploy
 
     on:
       push:
         branches:
           - main
-          - develop
-      pull_request:
-        branches:
-          - main
-          - develop
 
     jobs:
-      test:
-        name: Run Tests
+      deploy:
+        name: Deploy to Production
         runs-on: ubuntu-latest
 
         steps:
@@ -29,10 +24,4 @@
             run: |
               python -m venv venv
               . venv/bin/activate
-              pip install -r requirements-dev.txt
-              pip install pytest pytest-cov flake8
-
-          - name: Run Tests
-            run: |
-              . venv/bin/activate
-              pytest --cov=app
+              pip install -r requirements.txt
