@@ -63,8 +63,11 @@ def login():
         return jsonify({'error': 'Usuario o contraseña incorrectos'}), 401
     return render_template('auth/login.html', error='Usuario o contraseña incorrectos')
 
-@auth_bp.route('/logout', methods=['POST'])
+@auth_bp.route('/logout', methods=['GET', 'POST'])
 def logout():
     """Cierre de sesión"""
     session.clear()
-    return jsonify({'message': 'Sesión cerrada correctamente'}), 200
+    if request.method == 'POST':
+        return jsonify({'message': 'Sesión cerrada correctamente'}), 200
+    # Redirección para solicitudes GET (usualmente desde un navegador)
+    return redirect(url_for('auth.login'))

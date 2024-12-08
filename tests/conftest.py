@@ -1,4 +1,6 @@
 import pytest
+import uuid
+from app.models.user import User
 from app import create_app
 from app.extensions import db
 
@@ -30,4 +32,16 @@ def init_database(test_app):
         finally:
             db.session.rollback()  # Revierte cualquier cambio
             db.session.remove()  # Limpia la sesión
+            
+@pytest.fixture
+def authenticated_client(test_client):
+    """Crea un cliente autenticado con un usuario único."""
+    username = f"user_{uuid.uuid4().hex[:8]}"  # Genera un nombre único
+    user = User(username=username, password="password123")
+    db.session.add(user)
+    db.session.commit()
 
+    with test_client.session_transaction() as sess:
+        sess["user_id"] = user.id
+
+    return test_client, user
