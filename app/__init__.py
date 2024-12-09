@@ -2,6 +2,7 @@ from flask import Flask
 from app.extensions import db
 from app.api.auth import auth_bp
 from app.api.tasks import tasks_bp, tasks_api_bp
+from app.utils.jokes import jokes_bp
 
 
 def create_app(config_class='config.DevelopmentConfig'):
@@ -15,5 +16,7 @@ def create_app(config_class='config.DevelopmentConfig'):
     app.register_blueprint(auth_bp, url_prefix='/auth')  # Rutas de autenticación
     app.register_blueprint(tasks_bp, url_prefix='/tasks')  # Rutas normales de tareas
     app.register_blueprint(tasks_api_bp)  # Rutas API de tareas
+    app.register_blueprint(jokes_bp, url_prefix="/jokes")  # Aquí registramos el blueprint
+
 
     return app

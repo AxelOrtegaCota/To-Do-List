@@ -1,16 +1,25 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify, session
-from sqlalchemy.orm import Session
 from app.models.task import Task
 from app.models.user import User
 from app.extensions import db
+from app.utils.jokes import fetch_joke
 
 
 # Crear los blueprints
 tasks_bp = Blueprint("tasks", __name__)  # Para las rutas normales
 tasks_api_bp = Blueprint("tasks_api", __name__, url_prefix='/api/tasks')  # Para las rutas API
+jokes_bp = Blueprint("jokes", __name__, url_prefix="/jokes")
+
+
+@jokes_bp.route("/", methods=["GET"])
+def get_joke():
+    """Fetch a random joke."""
+    joke_data = fetch_joke(category="Programming", joke_type="single")
+    if "error" in joke_data:
+        return jsonify({"error": joke_data["error"]}), 500
+    return jsonify(joke_data), 200
 
 # Helper para verificar autenticación
-
 def get_authenticated_user():
     """Verifica si el usuario está autenticado y devuelve el usuario si existe."""
     user_id = session.get("user_id")
