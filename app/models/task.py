@@ -8,6 +8,8 @@ class Task(db.Model):
     content = db.Column(db.String(255), nullable=False)
     priority = db.Column(db.String(50), default="Medium", nullable=False)
     completed = db.Column(db.Boolean, default=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+
 
     # Relación con el usuario
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)

@@ -9,7 +9,7 @@ def test_register_view(test_client):
     """Prueba que la vista de registro se renderiza correctamente."""
     response = test_client.get(url_for("auth.register"))
     assert response.status_code == 200
-    assert b"Registro" in response.data  # Valida contenido en la página
+    assert b"Register" in response.data  # Valida contenido en la página
 
 
 def test_register_user(test_client, init_database):
@@ -28,7 +28,7 @@ def test_login_view(test_client):
     """Prueba que la vista de inicio de sesión se renderiza correctamente."""
     response = test_client.get(url_for("auth.login"))
     assert response.status_code == 200
-    assert 'Iniciar Sesión'.encode('utf-8') in response.data
+    assert 'Login'.encode('utf-8') in response.data
 
 
 def test_login_user(test_client, init_database):
@@ -44,7 +44,7 @@ def test_login_user(test_client, init_database):
         follow_redirects=True
     )
     assert response.status_code == 200
-    assert f"Bienvenido, {unique_username}".encode() in response.data
+    assert f"Welcome, {unique_username}".encode() in response.data
 
 
 def test_login_invalid_user(test_client):
@@ -70,4 +70,4 @@ def test_logout(test_client, init_database):
 
     response = test_client.get(url_for("auth.logout"), follow_redirects=True)
     assert response.status_code == 200
-    assert 'Iniciar Sesión'.encode('utf-8') in response.data
+    assert 'Login'.encode('utf-8') in response.data

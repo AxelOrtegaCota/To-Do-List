@@ -5,7 +5,7 @@ let tasks = [];
 function login() {
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
-    
+
     // Simula la verificación del login (usuario: "admin", contraseña: "password")
     if (username === 'admin' && password === '123') {
         document.getElementById('login-section').classList.remove('active');
@@ -131,4 +131,41 @@ function register() {
     // Cambiar a la vista de login
     showLogin();
 
+}
+
+function completeTask(taskId) {
+    const taskElement = document.getElementById(`task-${taskId}`);
+    const modal = document.getElementById('joke-modal');
+    const jokeContent = document.getElementById('joke-content');
+
+    fetch(`/tasks/complete/${taskId}`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.joke) {
+                // Mostrar el chiste en el modal
+                jokeContent.textContent = data.joke;
+                modal.style.display = 'block';
+
+                // Mover la tarea a la sección de tareas completadas
+                const completedTaskList = document.getElementById('completed-task-list');
+                completedTaskList.appendChild(taskElement);
+
+                // Eliminar botones de editar y completar
+                const editButton = taskElement.querySelector('button[onclick^="editTask"]');
+                const completeButton = taskElement.querySelector('.complete-task-btn');
+                if (editButton) editButton.remove();
+                if (completeButton) completeButton.remove();
+
+                // Opcional: Estilizar la tarea completada
+                taskElement.style.opacity = '0.7';
+            }
+        })
+        .catch(error => {
+            console.error("Error al completar la tarea:", error);
+        });
+}
+
+function closeJoke() {
+    const modal = document.getElementById('joke-modal');
+    modal.style.display = 'none';
 }

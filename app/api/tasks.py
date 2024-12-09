@@ -50,17 +50,23 @@ def todo_list():
 
 @tasks_bp.route("/edit/<int:task_id>", methods=["POST"])
 def edit_task(task_id):
-    user = get_authenticated_user()
-    if not user:
+    user_id = session.get("user_id")
+    if not user_id:
         return jsonify({"error": "Usuario no autenticado"}), 401
 
-    task = Task.query.filter_by(id=task_id, user_id=user.id).first()
+    task = Task.query.filter_by(id=task_id, user_id=user_id).first()
     if not task:
         return jsonify({"error": "Task not found"}), 404
 
-    task.content = request.form.get("new_content", task.content)
-    task.priority = request.form.get("new_priority", task.priority)
+    # Obtener los datos del formulario
+    new_content = request.form.get("new_content", task.content)
+    new_priority = request.form.get("new_priority", task.priority)
+
+    # Actualizar la tarea
+    task.content = new_content
+    task.priority = new_priority
     db.session.commit()
+
     return redirect(url_for("tasks.todo_list"))
 
 
@@ -77,6 +83,26 @@ def delete_task(task_id):
     db.session.delete(task)
     db.session.commit()
     return redirect(url_for("tasks.todo_list"))
+
+
+@tasks_bp.route("/complete/<int:task_id>", methods=["POST"])
+def complete_task(task_id):
+    user = get_authenticated_user()
+    if not user:
+        return jsonify({"error": "Usuario no autenticado"}), 401
+
+    task = Task.query.filter_by(id=task_id, user_id=user.id).first()
+    if not task:
+        return jsonify({"error": "Task not found"}), 404
+
+    task.completed = True
+    db.session.commit()
+
+    joke = fetch_joke(category="Programming", joke_type="single")
+    joke_text = joke.get("joke", "Here's a programming joke!")
+
+    return jsonify({"message": "Task completed", "joke": joke_text}), 200
+
 
 # Rutas API
 @tasks_api_bp.route("/", methods=["GET"])
