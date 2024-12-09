@@ -151,9 +151,9 @@ function completeTask(taskId) {
                 completedTaskList.appendChild(taskElement);
 
                 // Eliminar botones de editar y completar
-                const editButton = taskElement.querySelector('button[onclick^="editTask"]');
+                const saveButton = taskElement.querySelector('.save-btn');
                 const completeButton = taskElement.querySelector('.complete-task-btn');
-                if (editButton) editButton.remove();
+                if (saveButton) saveButton.remove();
                 if (completeButton) completeButton.remove();
 
                 // Opcional: Estilizar la tarea completada
