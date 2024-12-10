@@ -2,7 +2,8 @@ import pytest
 import uuid
 from app.models.user import User
 from app import create_app
-from app.extensions import db
+from app.extensions import db, oauth
+
 
 
 @pytest.fixture(scope='module')
@@ -32,12 +33,13 @@ def init_database(test_app):
         finally:
             db.session.rollback()  # Revierte cualquier cambio
             db.session.remove()  # Limpia la sesión
-            
+
 @pytest.fixture
 def authenticated_client(test_client):
     """Crea un cliente autenticado con un usuario único."""
     username = f"user_{uuid.uuid4().hex[:8]}"  # Genera un nombre único
-    user = User(username=username, password="password123")
+    email = f"{username}@example.com"
+    user = User(username=username, email=email, password="password123")
     db.session.add(user)
     db.session.commit()
 
@@ -45,3 +47,18 @@ def authenticated_client(test_client):
         sess["user_id"] = user.id
 
     return test_client, user
+
+
+@pytest.fixture(scope="module", autouse=True)
+def setup_oauth():
+    """Configura el cliente OAuth para los tests."""
+    oauth.register(
+        name="google",
+        client_id="test_client_id",
+        client_secret="test_client_secret",
+        access_token_url="https://oauth2.googleapis.com/token",
+        authorize_url="https://accounts.google.com/o/oauth2/auth",
+        api_base_url="https://www.googleapis.com/oauth2/v1/",
+        client_kwargs={"scope": "openid email profile"},
+    )
+

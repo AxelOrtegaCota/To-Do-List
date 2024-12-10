@@ -10,7 +10,7 @@ from app.extensions import db
 def authenticated_client(test_client):
     """Crea un cliente autenticado con un usuario único."""
     unique_username = f"user_{uuid.uuid4().hex[:8]}"
-    user = User(username=unique_username, password="password123")
+    user = User(username=unique_username, email=f"{unique_username}@example.com", password="password123")
     db.session.add(user)
     db.session.commit()
 

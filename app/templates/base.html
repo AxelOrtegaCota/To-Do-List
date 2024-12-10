@@ -28,7 +28,7 @@
     </header>
 
     <section id="todo-section" class="active">
-        <h1>Welcome, {{ session['username'] }}</h1>
+        <h1>Welcome {{ session['username'] }}</h1>
         <fieldset>
             <legend id="inicio">To-Do List</legend>
             <form method="POST" action="{{ url_for('tasks.todo_list') }}">

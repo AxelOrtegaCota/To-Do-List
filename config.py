@@ -5,6 +5,11 @@ class Config:
     SECRET_KEY = os.getenv('SECRET_KEY', 'default_secret_key')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    # OAuth settings
+    GOOGLE_CLIENT_ID = "GOOGLE_CLIENT_ID"
+    GOOGLE_CLIENT_SECRET = "GOOGLE_CLIENT_SECRET"
+    GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
+
 class DevelopmentConfig(Config):
     """Configuración para desarrollo."""
     DEBUG = True
