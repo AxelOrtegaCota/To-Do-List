@@ -16,8 +16,8 @@ def create_app(config_class='config.DevelopmentConfig'):
     migrate.init_app(app, db)
     oauth.init_app(app)
 
-    # Registrar clientes OAuth
-    load_dotenv()  # Cargar las variables de entorno
+    with app.app_context():
+        db.create_all()  # Esto asegura que las tablas se crean si no existen.
 
     oauth.register(
         name='google',
