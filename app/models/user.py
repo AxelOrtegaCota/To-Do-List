@@ -8,7 +8,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=True)
-    _password = db.Column("password", db.String(128), nullable=False)  # Campo privado para almacenar la contraseña
+    _password = db.Column("password", db.String(128), nullable=False) 
     oauth_id = db.Column(db.String(100))  # ID del proveedor OAuth
 
     # Relación con las tareas
