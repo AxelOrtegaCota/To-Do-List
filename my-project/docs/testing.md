@@ -1,39 +1,49 @@
-# Project Struture
+# Project Structure
 
-- app/: Main application logic.
-- tests/: Contains all test cases.
-- docs/: Documentation for the project.
+- `app/`: Main application logic.
+- `tests/`: Contains all test cases.
+- `docs/`: Documentation for the project.
 
 ## Running Tests
 1. Ensure all dependencies are installed.
 2. Run the tests using:
    ```bash
    pytest
-
+   ```
 
 ## Coverage Report
 1. Generate a coverage report:
-    pytest --cov=app
+   ```bash
+   pytest --cov=app
+   ```
 
 2. View the coverage report:
-    pytest --cov=app --cov-report=html
-
+   ```bash
+   pytest --cov=app --cov-report=html
+   ```
 
 ## Example Tests
 
+### Unit Test Example
+```python
+from app.models.user import User
 
-## Unit Test Example
 def test_user_creation(init_database):
-    """Prueba para la creación de usuarios."""
+    """Test for creating a user."""
     user = User(username="testuser")
     user.password = "plaintextpassword"
     assert user.username == "testuser"
     assert user._password != "plaintextpassword"
+```
 
+### Integration Test Example
+```python
+from app.models.user import User
+from app.models.task import Task
+from app.extensions import db
 
-## Integration Test Example
 def test_task_creation(init_database):
-    """Prueba la creación de una tarea y su asociación con un usuario."""
+    """Test creating a task and associating it with a user."""
     user = User.query.filter_by(username="test_user").first()
     task = Task(content="Test Task", user_id=user.id, priority="Medium")
     db.session.add(task)
@@ -42,18 +52,20 @@ def test_task_creation(init_database):
     assert task_in_db is not None
     assert task_in_db.user_id == user.id
     assert task_in_db.priority == "Medium"
+```
 
+### Functional Test Example
+```python
+from flask import url_for
 
-## Functional Test Example
 def test_register_view(test_client):
-    """Prueba que la vista de registro se renderiza correctamente."""
+    """Test that the register view renders correctly."""
     response = test_client.get(url_for("auth.register"))
     assert response.status_code == 200
     assert b"Register" in response.data
-
+```
 
 ## GitHub Actions Workflow
-
 
 ### Explanation of the Workflow
 1. **Trigger on Push:**
@@ -67,5 +79,3 @@ def test_register_view(test_client):
 
 4. **Run Tests:**
    - Executes `pytest` with coverage to ensure all tests pass and generate a code coverage report.
-
-
