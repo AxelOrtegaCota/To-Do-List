@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, redirect, url_for
 from app.extensions import db, migrate, oauth
 from app.api.auth import auth_bp
 from app.api.tasks import tasks_bp, tasks_api_bp
@@ -30,6 +30,11 @@ def create_app(config_class='config.DevelopmentConfig'):
             'scope': 'openid email profile',
         },
     )
+
+    # Define la ruta raíz para redirigir al login
+    @app.route("/")
+    def root():
+        return redirect(url_for("auth.login"))
 
     # Registra blueprints
     app.register_blueprint(auth_bp, url_prefix='/auth')  # Rutas de autenticación
