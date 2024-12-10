@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <script src="/static/js/script01.js"></script>
+    <style>
+        .task-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .task-buttons button {
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h3>To-Do List App</h3>
+        <nav>
+            <a href="{{ url_for('auth.logout') }}" class="logout-btn" style="color: black;">Logout</a>
+        </nav>
+    </header>
+
+    <section id="todo-section" class="active">
+        <h1>Welcome {{ session['username'] }}</h1>
+        <fieldset>
+            <legend id="inicio">To-Do List</legend>
+            <form method="POST" action="{{ url_for('tasks.todo_list') }}">
+                <input type="text" name="task_content" id="new-task-content" placeholder="New Task" required><br><br>
+
+                <label for="task-priority">Priority:</label>
+                <select name="task_priority" id="task-priority">
+                    <option value="Low">Low</option>
+                    <option value="Medium" selected>Medium</option>
+                    <option value="High">High</option>
+                </select><br><br>
+
+                <button type="submit">Add Task</button>
+            </form>
+        </fieldset>
+    </section>
+
+    <div id="task-container">
+        <h3>Tasks Assigned</h3>
+        <ul id="task-list">
+            {% for task in tasks %}
+                <li id="task-{{ task.id }}">
+                    <form method="POST" action="{{ url_for('tasks.edit_task', task_id=task.id) }}" style="margin-bottom: 0;">
+                        <input type="text" name="new_content" value="{{ task.content }}" required>
+
+                        <label for="new-priority">Priority:</label>
+                        <select name="new_priority">
+                            <option value="Low" {% if task.priority == 'Low' %}selected{% endif %}>Low</option>
+                            <option value="Medium" {% if task.priority == 'Medium' %}selected{% endif %}>Medium</option>
+                            <option value="High" {% if task.priority == 'High' %}selected{% endif %}>High</option>
+                        </select>
+
+                    <div class="task-buttons">
+                        <button type="submit" class="save-btn">Save</button>
+                    </form>
+
+
+                        <form method="POST" action="{{ url_for('tasks.delete_task', task_id=task.id) }}" style="margin: 0;">
+                            <button type="submit" class="delete-btn">Delete</button>
+                        </form>
+
+                        <form class="complete-task-form" style="margin: 0;">
+                            <button type="button" class="complete-task-btn" onclick="completeTask('{{ task.id }}')">Complete</button>
+                        </form>
+                    </div>
+                </li>
+            {% else %}
+                <li>No tasks assigned</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Nueva sección para tareas completadas -->
+    <div id="completed-tasks-container">
+        <h3>Tasks Completed</h3>
+        <ul id="completed-task-list">
+            <!-- Las tareas completadas se añadirán aquí dinámicamente -->
+        </ul>
+    </div>
+
+    <!-- Modal para mostrar el chiste -->
+    <div id="joke-modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 1px solid black;">
+        <p id="joke-content"></p>
+        <button id="close-joke-modal" style="margin-top: 10px;" onclick="closeJoke()">Close</button>
+    </div>
+
+    <footer>
+        <p>&copy; By Axel Ortega</p>
+    </footer>
+</body>
+</html>
