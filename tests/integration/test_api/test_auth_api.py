@@ -1,10 +1,8 @@
 import pytest
 from flask import url_for
-from app.models.user import User
-from app.extensions import db
 
 
-def test_register_user(test_client, init_database):
+def test_register_user(test_client):
     """Test that a user can register successfully."""
     response = test_client.post(
         url_for('auth.register'),
